@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="350dp"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="4dp"
+    android:layout_marginStart="18dp"
+    app:cardCornerRadius="5dp">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="4dp">
+
+        <CheckBox
+            android:id="@+id/cb_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="10dp"
+            android:button="?android:attr/listChoiceIndicatorSingle"
+            android:ems="12"
+            android:text="Task"
+            android:textColor="#000000"
+            android:textSize="20dp" />
+
+        <TextView
+            android:id="@+id/tv_description"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/cb_title"
+            android:layout_alignEnd="@+id/cb_title"
+            android:layout_marginTop="10dp"
+            android:ems="10"
+            android:text="Description"
+            android:textSize="10dp" />
+
+        <TextView
+            android:id="@+id/tv_date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/tv_description"
+            android:layout_marginTop="13dp"
+            android:layout_marginEnd="5dp"
+            android:layout_toStartOf="@id/iv_calender"
+            android:text="Date"
+            android:textColor="#000000"
+            android:textSize="10dp" />
+
+        <ImageView
+            android:id="@+id/iv_calender"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/tv_description"
+            android:layout_alignEnd="@+id/tv_description"
+            android:layout_marginTop="10dp"
+            android:src="@drawable/calendar3" />
+
+        <ImageView
+            android:id="@+id/iv_flag"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="10dp"
+            android:layout_toEndOf="@+id/cb_title"
+            android:src="@drawable/flag4" />
+
+
+    </RelativeLayout>
+
+</androidx.cardview.widget.CardView>
