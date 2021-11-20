@@ -48,6 +48,7 @@ public class Today extends AppCompatActivity implements TimePickerDialog.OnTimeS
     ArrayList<Task> tasks;
     Button addNewTask;
     Calendar c;
+    RecyclerView.Adapter mAdapter;
     //Task newTask = new Task("","", "","","",false);
 
     @Override
@@ -76,7 +77,6 @@ public class Today extends AppCompatActivity implements TimePickerDialog.OnTimeS
                showCoustomDialog1(tasks.get(position));
             }
         });
-
     }
 
     public void Click(View view) {
@@ -144,6 +144,7 @@ public class Today extends AppCompatActivity implements TimePickerDialog.OnTimeS
         submit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                tasks.add(tasks.size()+1 , new Task(title.getText().toString(), description.getText().toString(), date.getText().toString(), "", "", false));
                 dialog.dismiss();
             }
         });
@@ -165,7 +166,6 @@ public class Today extends AppCompatActivity implements TimePickerDialog.OnTimeS
                 datePicker.show(getSupportFragmentManager(), "date picker");
             }
         });
-
 
         dialog.show();
 
@@ -189,7 +189,6 @@ public class Today extends AppCompatActivity implements TimePickerDialog.OnTimeS
         submit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //tasks.add(Newtask);
                 dialog.dismiss();
             }
         });
@@ -200,10 +199,13 @@ public class Today extends AppCompatActivity implements TimePickerDialog.OnTimeS
                 DialogFragment timePicker = new TimePickerFragment();
                 timePicker.show(getSupportFragmentManager(), "time picker");
 
+                /*
                 Newtask.setTitle(title.getText().toString().trim());
                 Newtask.setDescription(description.getText().toString().trim());
                 Newtask.setDate(currentDate);
                 tasks.add(Newtask);
+
+                 */
             }
         });
 
