@@ -35,7 +35,7 @@ public class Task {
     }
 
     public boolean isDone() {
-        return done;
+        return this.done;
     }
 
     public void setTitle(String title) {
