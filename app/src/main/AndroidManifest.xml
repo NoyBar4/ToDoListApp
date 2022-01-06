@@ -9,15 +9,25 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".Opening"></activity>
-        <activity android:name=".Today">
+        <activity android:name=".SignUp"></activity>
+        <activity android:name=".LogIn" />
+        <activity android:name=".EditTaskActivity" />
+        <activity android:name=".Opening">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER"  />
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <receiver android:name=".AlertReceiver"></receiver>
+        <activity android:name=".Today">
+            <intent-filter>
+                <action android:name="android.intent.action.MAINACTIVITY" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <receiver android:name=".AlertReceiver" />
 
         <meta-data
             android:name="preloaded_fonts"

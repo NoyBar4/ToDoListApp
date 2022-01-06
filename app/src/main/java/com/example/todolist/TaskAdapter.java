@@ -6,6 +6,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.CheckBox;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -15,12 +16,13 @@ import java.util.ArrayList;
 
 public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder> {
 
-    private ArrayList<Task> tasks;
-    private OnItemClickListener mListener;
+    private static ArrayList<Task> tasks;
+    private static OnItemClickListener mListener;
 
     public interface OnItemClickListener {
-        void onItemClick(int position);
+        void onItemClick(Task task);
     }
+
     public void setOnItemClickListener(OnItemClickListener listener) {
         mListener = listener;
     }
@@ -48,6 +50,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
 
         holder.calender.setImageResource(
                 holder.description.getResources().getIdentifier(currentTask.getCalender(), "drawable" , holder.description.getContext().getPackageName()));
+
     }
 
     @Override
@@ -60,6 +63,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         public CheckBox title;
         public TextView description, date;
         public ImageView calender, flag;
+        public LinearLayout layout;
 
         public TaskViewHolder(@NonNull View itemView, OnItemClickListener listener) {
             super(itemView);
@@ -68,16 +72,25 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
             date = itemView.findViewById(R.id.tv_date);
             calender = itemView.findViewById(R.id.iv_calender);
             flag = itemView.findViewById(R.id.iv_flag);
+            layout = itemView.findViewById(R.id.task);
+
 
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
+                    /*
                     if(listener != null) {
                         int position = getAdapterPosition();
                         if (position != RecyclerView.NO_POSITION) {
                             listener.onItemClick(position);
                         }
                     }
+
+                     */
+
+                    int position = getAdapterPosition();
+                    if (mListener != null && position  != RecyclerView.NO_POSITION)
+                    mListener.onItemClick(tasks.get(position));
                 }
             });
         }

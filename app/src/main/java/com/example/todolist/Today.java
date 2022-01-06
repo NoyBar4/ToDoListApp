@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.AlarmManager;
+import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.Notification;
@@ -24,11 +25,13 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
+import android.widget.Adapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.NumberPicker;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
@@ -39,6 +42,7 @@ import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Objects;
 import java.util.Random;
 
 import static com.example.todolist.TaskAdapter.*;
@@ -48,14 +52,18 @@ public class Today extends AppCompatActivity implements TimePickerDialog.OnTimeS
     ArrayList<Task> tasks;
     Button addNewTask;
     Calendar c;
-    RecyclerView.Adapter mAdapter;
-    //Task newTask = new Task("","", "","","",false);
+
+    public static final int ADD_NOTE_REQUEST = 1;
+    public static final int EDIT_NOTE_REQUEST = 2;
+    String currentDate;
+    TaskAdapter taskAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_today);
 
+        //getSupportActionBar().hide();
         addNewTask = findViewById(R.id.add_new_task);
         c = Calendar.getInstance();
 
@@ -67,30 +75,44 @@ public class Today extends AppCompatActivity implements TimePickerDialog.OnTimeS
         RecyclerView recyclerView = findViewById(R.id.recycler);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        TaskAdapter taskAdapter = new TaskAdapter(tasks);
+        taskAdapter = new TaskAdapter(tasks);
         recyclerView.setAdapter(taskAdapter);
 
+        /*
         taskAdapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(int position) {
                 Toast.makeText( Today.this, "This is my Toast message!", Toast.LENGTH_LONG).show();
-               showCoustomDialog1(tasks.get(position));
+                editExistTask(tasks.get(position));
+            }
+        });
+
+         */
+
+        taskAdapter.setOnItemClickListener(new OnItemClickListener() {
+            @Override
+            public void onItemClick(Task task) {
+                //Intent intent = new Intent(Today.this , EditTaskActivity.class);
+                //startActivityForResult(intent, ADD_NOTE_REQUEST);
+                editExistTask(task, tasks.indexOf(task));
+
             }
         });
     }
 
     public void Click(View view) {
         if(view == addNewTask){
-            showCoustomDialog(new Task("","", "","","",false));
+            createNewTask();
         }
 
     }
 
-    public void showCoustomDialog1(Task existTask){
+    public void editExistTask(Task existTask, int position){
+
         final Dialog dialog = new Dialog(Today.this);
         //The user will be able to cancel the dialog by typing anywhere outside the dialog
         dialog.setCancelable(true);
-        dialog.setContentView(R.layout.task_dialog);
+        dialog.setContentView(R.layout.activity_edit_task);
 
         //Initializing the views of the dialog
         final EditText title = dialog.findViewById(R.id.ed_title);
@@ -100,51 +122,24 @@ public class Today extends AppCompatActivity implements TimePickerDialog.OnTimeS
         final ImageButton priority = dialog.findViewById(R.id.ib_flag);
         final ImageButton delete = dialog.findViewById(R.id.ib_delete);
         final ImageButton submit = dialog.findViewById(R.id.ib_send);
-
-        //final CheckBox cv_title = dialog.findViewById(R.id.cb_title);
+        NumberPicker myNumberPicker = new NumberPicker(Today.this);
 
         title.setText(existTask.getTitle());
         description.setText(existTask.getDescription());
         date.setText(existTask.getDate());
 
-        /*
-        title.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                //cv_title.setText(title.getText().toString());
-                //existTask.setTitle(cv_title.getText().toString());
-                String string = title.getText().toString().trim();
-                Toast.makeText( Today.this, string, Toast.LENGTH_LONG).show();
-                existTask.setTitle(string);
-            }
-        });
-
-         */
-
-        title.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                if (actionId == EditorInfo.IME_ACTION_DONE) {
-                    String string = v.getText().toString();
-                    Toast.makeText( Today.this, string, Toast.LENGTH_LONG).show();
-                    v.setText("");
-                    existTask.setTitle(string);
-                }
-                return false;
-            }
-        });
-
-        description.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                existTask.setDescription(description.getText().toString());
-            }
-        });
+        final String prioritySri = existTask.getPriority();
+        Character priorityCh = prioritySri.charAt(prioritySri.length()-1);
+        int priorityNum = Character.getNumericValue(priorityCh);
+        myNumberPicker.setMaxValue(4);
+        myNumberPicker.setMinValue(1);
+        myNumberPicker.setValue(priorityNum);
 
         submit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                tasks.add(tasks.size()+1 , new Task(title.getText().toString(), description.getText().toString(), date.getText().toString(), "", "", false));
+                tasks.set(position, new Task(title.getText().toString(), description.getText().toString(), date.getText().toString(), "flag"+myNumberPicker.getValue(), "", false));
+                taskAdapter.notifyDataSetChanged();
                 dialog.dismiss();
             }
         });
@@ -155,50 +150,7 @@ public class Today extends AppCompatActivity implements TimePickerDialog.OnTimeS
                 DialogFragment timePicker = new TimePickerFragment();
                 timePicker.show(getSupportFragmentManager(), "time picker");
 
-                existTask.setDate(date.getText().toString());
-            }
-        });
-
-        date.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                DialogFragment datePicker = new DatePickerFragment();
-                datePicker.show(getSupportFragmentManager(), "date picker");
-            }
-        });
-
-        dialog.show();
-
-    }
-
-    public void showCoustomDialog(Task Newtask) {
-        final Dialog dialog = new Dialog(Today.this);
-        //The user will be able to cancel the dialog by typing anywhere outside the dialog
-        dialog.setCancelable(true);
-        dialog.setContentView(R.layout.task_dialog);
-
-        //Initializing the views of the dialog
-        final EditText title = dialog.findViewById(R.id.ed_title);
-        final EditText description = dialog.findViewById(R.id.ed_description);
-        final TextView date = dialog.findViewById(R.id.ed_date);
-        final ImageButton alarm = dialog.findViewById(R.id.ib_calender);
-        final ImageButton priority = dialog.findViewById(R.id.ib_flag);
-        final ImageButton delete = dialog.findViewById(R.id.ib_delete);
-        final ImageButton submit = dialog.findViewById(R.id.ib_send);
-
-        submit.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                dialog.dismiss();
-            }
-        });
-
-        alarm.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                DialogFragment timePicker = new TimePickerFragment();
-                timePicker.show(getSupportFragmentManager(), "time picker");
-
+                //tasks.add(new Task(title.getText().toString(), description.getText().toString(), date.getText().toString(), "", "", false));
                 /*
                 Newtask.setTitle(title.getText().toString().trim());
                 Newtask.setDescription(description.getText().toString().trim());
@@ -214,8 +166,134 @@ public class Today extends AppCompatActivity implements TimePickerDialog.OnTimeS
             public void onClick(View view) {
                 DialogFragment datePicker = new DatePickerFragment();
                 datePicker.show(getSupportFragmentManager(), "date picker");
+                date.setText(currentDate);
             }
         });
+
+        priority.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                NumberPicker.OnValueChangeListener myOnValueChangeListener = new NumberPicker.OnValueChangeListener() {
+                    @Override
+                    public void onValueChange(NumberPicker numberPicker, int oldVal, int newVal) {
+
+                    }
+                };
+                myNumberPicker.setOnValueChangedListener(myOnValueChangeListener);
+                AlertDialog.Builder builder = new AlertDialog.Builder(Today.this).setView(myNumberPicker);
+                builder.setTitle("Priority");
+                builder.setPositiveButton("End", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int which) {
+                    }
+                });
+                builder.show();
+            }
+        });
+
+        delete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                AlertDialog.Builder deleteDialog = new AlertDialog.Builder(Today.this);
+                deleteDialog.setTitle("Are you sure you'd like to delete this task?");
+                deleteDialog.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int which) {
+                        tasks.remove(position);
+                        taskAdapter.notifyDataSetChanged();
+                        dialog.dismiss();
+                    }
+                });
+
+                deleteDialog.setNegativeButton("Cancle", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int which) {
+                        dialogInterface.dismiss();
+                    }
+                });
+
+                deleteDialog.show();
+            }
+        });
+
+        dialog.show();
+    }
+
+    public void createNewTask() {
+        final Dialog dialog = new Dialog(Today.this);
+        //The user will be able to cancel the dialog by typing anywhere outside the dialog
+        dialog.setCancelable(true);
+        dialog.setContentView(R.layout.activity_edit_task);
+
+        //Initializing the views of the dialog
+        final EditText title = dialog.findViewById(R.id.ed_title);
+        final EditText description = dialog.findViewById(R.id.ed_description);
+        final TextView date = dialog.findViewById(R.id.ed_date);
+        final ImageButton alarm = dialog.findViewById(R.id.ib_calender);
+        final ImageButton priority = dialog.findViewById(R.id.ib_flag);
+        final ImageButton delete = dialog.findViewById(R.id.ib_delete);
+        final ImageButton submit = dialog.findViewById(R.id.ib_send);
+        NumberPicker myNumberPicker = new NumberPicker(Today.this);
+
+        submit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                tasks.add(new Task(title.getText().toString(), description.getText().toString(), date.getText().toString(), "flag"+(int)myNumberPicker.getValue(), "", false));
+                taskAdapter.notifyDataSetChanged();
+                dialog.dismiss();
+            }
+        });
+
+        alarm.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                DialogFragment timePicker = new TimePickerFragment();
+                timePicker.show(getSupportFragmentManager(), "time picker");
+               // tasks.add(new Task(title.getText().toString(), description.getText().toString(), date.getText().toString(), "flag"+(int)myNumberPicker.getValue(), "", false));
+                /*
+                Newtask.setTitle(title.getText().toString().trim());
+                Newtask.setDescription(description.getText().toString().trim());
+                Newtask.setDate(currentDate);
+                tasks.add(Newtask);
+
+                 */
+            }
+        });
+
+        date.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                DialogFragment datePicker = new DatePickerFragment();
+                datePicker.show(getSupportFragmentManager(), "date picker");
+                date.setText(currentDate);
+            }
+        });
+
+        priority.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                myNumberPicker.setMaxValue(4);
+                myNumberPicker.setMinValue(1);
+                NumberPicker.OnValueChangeListener myOnValueChangeListener = new NumberPicker.OnValueChangeListener() {
+                    @Override
+                    public void onValueChange(NumberPicker numberPicker, int oldVal, int newVal) {
+                    }
+                };
+
+                myNumberPicker.setOnValueChangedListener(myOnValueChangeListener);
+                AlertDialog.Builder builder = new AlertDialog.Builder(Today.this).setView(myNumberPicker);
+                builder.setTitle("Priority");
+                builder.setPositiveButton("End", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int which) {
+                    }
+                });
+                builder.show();
+            }
+        });
+
+        delete.setVisibility(View.INVISIBLE);
 
         dialog.show();
     }
@@ -243,7 +321,6 @@ public class Today extends AppCompatActivity implements TimePickerDialog.OnTimeS
         startAlarm(c);
     }
 
-    String currentDate;
     @Override
     public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
         c.set(Calendar.YEAR, year);
