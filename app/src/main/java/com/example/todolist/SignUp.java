@@ -18,6 +18,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -49,14 +50,13 @@ public class SignUp extends AppCompatActivity {
         Connect.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-               createUser();
+                createUser();
                 //Intent intent = new Intent(SignUp.this, Today.class);
                 //startActivity(intent);
             }
         });
     }
 
-    /*
     public void saveName(View view){
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference myRef = database.getReference("name");
@@ -85,15 +85,13 @@ public class SignUp extends AppCompatActivity {
         myRef.setValue(tasks);
     }
 
-     */
-    public void addUser(){
+    public void addUser() {
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference myRef = database.getReference("users").push();
 
-        User user = new User(Name.getText().toString(), Password.getText().toString(), Email.getText().toString(),tasks);
+        User user = new User(Name.getText().toString(), Password.getText().toString(), Email.getText().toString(), tasks);
         myRef.setValue(user);
     }
-
 
     private void createUser () {
         String name = Name.getText().toString();
@@ -127,9 +125,25 @@ public class SignUp extends AppCompatActivity {
             public void onComplete(@NonNull com.google.android.gms.tasks.Task<AuthResult> task) {
                 if(task.isSuccessful())
                 {
+                    /*
                     addUser();
                     Toast.makeText(SignUp.this, "User registered successfully", Toast.LENGTH_SHORT).show();
-                    startActivity(new Intent(SignUp.this, Today.class));
+                    startActivity(new Intent(SignUp.this, Home.class));
+                    finish();
+                     */
+                    // Sign in success
+                    FirebaseUser user = firebaseAuth.getCurrentUser();
+
+                    UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
+                            .setDisplayName(Name.getText().toString()).build();
+
+                    FirebaseDatabase database = FirebaseDatabase.getInstance();
+                    DatabaseReference myRef = database.getReference("users").child(user.getUid()).child("profile").push();
+
+                    User mUser = new User(Name.getText().toString(), Password.getText().toString(), Email.getText().toString(), tasks);
+                    myRef.setValue(mUser);
+
+                    startActivity(new Intent(SignUp.this, Home.class));
                     finish();
                 }
                 else

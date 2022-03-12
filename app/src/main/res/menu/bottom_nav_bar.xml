@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:id="@+id/miHome"
+        android:title="Home"
+        android:icon="@drawable/home1" />
+
+    <item android:id="@+id/miAllActivity"
+        android:title="All Activity"
+        android:icon="@drawable/dashboard" />
+
+    <item android:id="@+id/placeholder"
+        android:title=""
+        android:enabled="false"/>
+
+    <item android:id="@+id/miCalender"
+        android:title="Calender"
+        android:icon="@drawable/calender" />
+
+    <item android:id="@+id/miCettings"
+        android:title="Settings"
+        android:icon="@drawable/settings" />
+
+</menu>

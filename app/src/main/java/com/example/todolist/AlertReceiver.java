@@ -14,13 +14,13 @@ public class AlertReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
 
-        Intent i = new Intent(context,Today.class);
+        Intent i = new Intent(context,Home.class);
         i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        PendingIntent pendingIntent = PendingIntent.getActivity(context,1, i, 0);
+        PendingIntent pendingIntent = PendingIntent.getActivity(context,0, i, 0);
 
         builder = new NotificationCompat.Builder(context,"task")
                 .setSmallIcon(R.drawable.icon)
-                .setContentTitle("Your task for today:")
+                .setContentTitle("Your Daily Remainder")
                 .setContentText("task")
                 .setAutoCancel(true)
                 .setDefaults(NotificationCompat.DEFAULT_ALL)

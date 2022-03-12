@@ -16,8 +16,6 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 
-import org.w3c.dom.Text;
-
 public class LogIn extends AppCompatActivity {
 
     EditText Email,Password;
@@ -68,7 +66,7 @@ public class LogIn extends AppCompatActivity {
 
                     if (task.isSuccessful()) {
                         Toast.makeText(LogIn.this, "Login Successful", Toast.LENGTH_SHORT).show();
-                        startActivity(new Intent(LogIn.this, Today.class));
+                        startActivity(new Intent(LogIn.this, Home.class));
                     } else {
                         Toast.makeText(LogIn.this, "Login Failed" + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
                     }

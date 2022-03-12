@@ -3,7 +3,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="350dp"
+    android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:layout_marginBottom="4dp"
     android:layout_marginStart="18dp"
@@ -33,7 +33,7 @@
             android:layout_below="@id/cb_title"
             android:layout_alignEnd="@+id/cb_title"
             android:layout_marginTop="10dp"
-            android:ems="10"
+            android:maxEms="20"
             android:text="Description"
             android:textSize="10dp" />
 
@@ -42,21 +42,25 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@id/tv_description"
-            android:layout_marginTop="13dp"
-            android:layout_marginEnd="5dp"
-            android:layout_toStartOf="@id/iv_calender"
-            android:text="Date"
-            android:textColor="#000000"
-            android:textSize="10dp" />
+            android:layout_alignEnd="@+id/tv_description"
+            android:layout_marginTop="10dp"
+            android:text="No Date"
+            android:drawableEnd="@drawable/calender"
+            android:drawablePadding="5dp"
+            android:textSize="12dp"/>
 
-        <ImageView
-            android:id="@+id/iv_calender"
+        <TextView
+            android:id="@+id/tv_tags"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@id/tv_description"
-            android:layout_alignEnd="@+id/tv_description"
+            android:layout_alignLeft="@id/tv_date"
+            android:layout_marginLeft="130dp"
             android:layout_marginTop="10dp"
-            android:src="@drawable/calendar3" />
+            android:drawableEnd="@drawable/tag"
+            android:drawablePadding="5dp"
+            android:text="Tags: "
+            android:textSize="12dp" />
 
         <ImageView
             android:id="@+id/iv_flag"

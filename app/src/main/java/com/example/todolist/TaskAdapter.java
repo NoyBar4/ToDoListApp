@@ -7,14 +7,20 @@ import android.widget.AdapterView;
 import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.firebase.ui.database.FirebaseRecyclerOptions;
+import com.google.firebase.database.FirebaseDatabase;
+
 import java.util.ArrayList;
 
 public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder> {
+    private static final String TAG = TaskAdapter.class.getSimpleName();
 
     private static ArrayList<Task> tasks;
     private static OnItemClickListener mListener;
@@ -44,13 +50,14 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         holder.title.setText(currentTask.getTitle().toString());
         holder.description.setText(currentTask.getDescription());
         holder.date.setText(currentTask.getDate());
-        //holder.calender.setImageResource(R.drawable.calendar3);
+        holder.tags.setText(currentTask.getTags());
+        //holder.tags.setText(currentTask.getTags());
+        //holder.calender.setImageResource(R.drawable.calender);
         holder.flag.setImageResource(
                 holder.description.getResources().getIdentifier(currentTask.getPriority(), "drawable" , holder.description.getContext().getPackageName()));
 
-        holder.calender.setImageResource(
-                holder.description.getResources().getIdentifier(currentTask.getCalender(), "drawable" , holder.description.getContext().getPackageName()));
-
+        //holder.tag.setImageResource(
+        //        holder.description.getResources().getIdentifier(currentTask.getCalender(), "drawable" , holder.description.getContext().getPackageName()));
     }
 
     @Override
@@ -61,8 +68,8 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
     public static class TaskViewHolder extends RecyclerView.ViewHolder {
 
         public CheckBox title;
-        public TextView description, date;
-        public ImageView calender, flag;
+        public TextView description, date, tags;
+        public ImageView flag;
         public LinearLayout layout;
 
         public TaskViewHolder(@NonNull View itemView, OnItemClickListener listener) {
@@ -70,10 +77,9 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
             title = itemView.findViewById(R.id.cb_title);
             description = itemView.findViewById(R.id.tv_description);
             date = itemView.findViewById(R.id.tv_date);
-            calender = itemView.findViewById(R.id.iv_calender);
             flag = itemView.findViewById(R.id.iv_flag);
+            tags = itemView.findViewById(R.id.tv_tags);
             layout = itemView.findViewById(R.id.task);
-
 
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -87,12 +93,12 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
                     }
 
                      */
-
                     int position = getAdapterPosition();
                     if (mListener != null && position  != RecyclerView.NO_POSITION)
                     mListener.onItemClick(tasks.get(position));
                 }
             });
+
         }
     }
 }

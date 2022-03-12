@@ -2,9 +2,12 @@
 <resources>
     <array name="preloaded_fonts" translatable="false">
         <item>@font/antic</item>
+        <item>@font/antic_slab</item>
         <item>@font/bad_script</item>
+        <item>@font/basic</item>
         <item>@font/dancing_script</item>
         <item>@font/dancing_script_bold</item>
+        <item>@font/geo</item>
         <item>@font/jacques_francois_shadow</item>
         <item>@font/titan_one</item>
     </array>

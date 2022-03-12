@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".Home">
+
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:id="@+id/coordinatorLayout"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <com.google.android.material.bottomappbar.BottomAppBar
+            android:id="@+id/bottomAppBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            app:fabCradleMargin="16dp"
+            app:fabCradleRoundedCornerRadius="20dp"
+            app:fabCradleVerticalOffset="10dp">
+
+            <com.google.android.material.bottomnavigation.BottomNavigationView
+                android:id="@+id/bottomNavigationView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginEnd="16dp"
+                android:background="@android:color/transparent"
+                app:menu="@menu/bottom_nav_bar"/>
+
+        </com.google.android.material.bottomappbar.BottomAppBar>
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@color/colorPink2"
+            android:src="@drawable/add"
+            app:layout_anchor="@id/bottomAppBar" />
+
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toTopOf="@+id/coordinatorLayout"
+        tools:ignore="MissingConstraints"
+        android:gravity="left"
+        android:layout_marginLeft="20dp">
+
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/basic"
+            android:text="What's up Joey !"
+            android:textColor="#000000"
+            android:textSize="35dp"
+            android:textStyle="bold"
+            />
+
+        <TextView
+            android:id="@+id/categories"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="35dp"
+            android:fontFamily="@font/basic"
+            android:text="Categories"
+            android:textColor="#615F5F"
+            android:textSize="20dp"
+            android:textStyle="bold" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/tags_recycler"
+            android:layout_width="match_parent"
+            android:layout_height="112dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginEnd="15dp"
+            android:orientation="horizontal" />
+
+        <TextView
+            android:id="@+id/task_for_today"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:fontFamily="@font/basic"
+            android:text="you have ## tasks for today"
+            android:textColor="#615F5F"
+            android:textSize="20dp"
+            android:textStyle="bold" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/tasks_recycler"
+            android:layout_width="match_parent"
+            android:layout_height="300dp"
+            android:layout_marginTop="30dp"
+            android:padding="4dp" />
+
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
