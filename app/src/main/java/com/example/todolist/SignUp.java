@@ -29,7 +29,7 @@ import static android.content.ContentValues.TAG;
 
 public class SignUp extends AppCompatActivity {
 
-    EditText Name,Password,Email;
+    EditText Name,Password,Email,Phone;
     Button Connect;
     ArrayList<Task> tasks;
     FirebaseAuth firebaseAuth;
@@ -42,6 +42,7 @@ public class SignUp extends AppCompatActivity {
         Name = findViewById(R.id.name);
         Password = findViewById(R.id.password);
         Email = findViewById(R.id.email);
+        Phone = findViewById(R.id.phone);
         Connect = findViewById(R.id.sign_up);
 
        tasks = new ArrayList<>();
@@ -77,6 +78,12 @@ public class SignUp extends AppCompatActivity {
 
         myRef.setValue(Email.getText().toString());
     }
+    public void savePhone(View view){
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference myRef = database.getReference("phone");
+
+        myRef.setValue(Phone.getText().toString());
+    }
 
     public void saveTasks(View view){
         FirebaseDatabase database = FirebaseDatabase.getInstance();
@@ -89,7 +96,7 @@ public class SignUp extends AppCompatActivity {
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference myRef = database.getReference("users").push();
 
-        User user = new User(Name.getText().toString(), Password.getText().toString(), Email.getText().toString(), tasks);
+        User user = new User(Name.getText().toString(), Password.getText().toString(), Email.getText().toString(), Phone.getText().toString(), tasks);
         myRef.setValue(user);
     }
 
@@ -97,6 +104,7 @@ public class SignUp extends AppCompatActivity {
         String name = Name.getText().toString();
         String password = Password.getText().toString();
         String email = Email.getText().toString();
+        String phone = Phone.getText().toString();
 
         if(TextUtils.isEmpty(name)) {
             Name.setError("Enter Your Name");
@@ -116,6 +124,10 @@ public class SignUp extends AppCompatActivity {
         }
         else if(!isValidPassword(password)) {
             Password.setError("password should contain a letter");
+            return;
+        }
+        else if(!isValidMobile(phone)) {
+            Password.setError("invalid phone number");
             return;
         }
 
@@ -140,7 +152,7 @@ public class SignUp extends AppCompatActivity {
                     FirebaseDatabase database = FirebaseDatabase.getInstance();
                     DatabaseReference myRef = database.getReference("users").child(user.getUid()).child("profile").push();
 
-                    User mUser = new User(Name.getText().toString(), Password.getText().toString(), Email.getText().toString(), tasks);
+                    User mUser = new User(Name.getText().toString(), Password.getText().toString(), Email.getText().toString(), Phone.getText().toString(), tasks);
                     myRef.setValue(mUser);
 
                     startActivity(new Intent(SignUp.this, Home.class));
@@ -167,5 +179,9 @@ public class SignUp extends AppCompatActivity {
                 isChar = true;
         }
         return isChar;
+    }
+
+    private boolean isValidMobile(String phone) {
+        return android.util.Patterns.PHONE.matcher(phone).matches();
     }
 }

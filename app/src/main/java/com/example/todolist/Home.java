@@ -28,6 +28,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.MenuItem;
@@ -94,14 +95,9 @@ public class Home extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_home);
 
-        //createNotificationChannel();
-        //Calendar calendar = Calendar.getInstance();
-        //calendar.set(Calendar.HOUR_OF_DAY, 17);
-        //calendar.set(Calendar.MINUTE, 51);
-        //calendar.set(Calendar.SECOND, 0);
-        //calendar.set(Calendar.MILLISECOND,0);
-        //startAlarm(calendar);
+        startAlarm();
 
         bottomNavigationView = findViewById(R.id.bottomNavigationView);
         bottomNavigationView.setBackground(null);
@@ -418,8 +414,8 @@ public class Home extends AppCompatActivity {
         });
 
         alarm.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            int hour = c.get(Calendar.YEAR);
-            int minute = c.get(Calendar.MONTH);
+            int hour = c.get(Calendar.HOUR_OF_DAY);
+            int minute = c.get(Calendar.MINUTE);
 
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -601,10 +597,19 @@ public class Home extends AppCompatActivity {
         }
     }
 
-    private void startAlarm(Calendar c) {
+    private void startAlarm() {
+        createNotificationChannel();
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(System.currentTimeMillis());
+        calendar.set(Calendar.HOUR_OF_DAY, 18);
+        calendar.set(Calendar.MINUTE, 22);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND,0);
+
+        //לא עובד כל יום כמו שהוא אמור
         AlarmManager alarmManager = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
         Intent intent = new Intent(Home.this, AlertReceiver.class);
         PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, intent, 0);
-        alarmManager.setExact(AlarmManager.RTC_WAKEUP, c.getTimeInMillis(), pendingIntent);
+        alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent);
     }
 }

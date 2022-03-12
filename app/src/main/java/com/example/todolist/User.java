@@ -6,13 +6,14 @@ import java.util.ArrayList;
 
 public class User {
 
-    private String Name, Password, Email;
+    private String Name, Password, Email, Phone;
     private ArrayList<Task> Tasks;
 
-    public User(String name, String password, String email, ArrayList<Task> tasks) {
+    public User(String name, String password, String email,String phone, ArrayList<Task> tasks) {
         this.Name = name;
         this.Password = password;
         this.Email = email;
+        this.Phone = phone;
         this.Tasks = new ArrayList<Task> ();
     }
 
@@ -28,7 +29,12 @@ public class User {
         return Email;
     }
 
+    public String getPhone() {
+        return Phone;
+    }
+
     public ArrayList<Task> getTasks() {
         return Tasks;
     }
+
 }

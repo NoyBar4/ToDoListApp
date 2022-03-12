@@ -21,7 +21,7 @@ public class AlertReceiver extends BroadcastReceiver {
         builder = new NotificationCompat.Builder(context,"task")
                 .setSmallIcon(R.drawable.icon)
                 .setContentTitle("Your Daily Remainder")
-                .setContentText("task")
+                .setContentText("tap here to check out your tasks for today")
                 .setAutoCancel(true)
                 .setDefaults(NotificationCompat.DEFAULT_ALL)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
