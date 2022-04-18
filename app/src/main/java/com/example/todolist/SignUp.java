@@ -57,7 +57,7 @@ public class SignUp extends AppCompatActivity {
             }
         });
     }
-
+/*
     public void saveName(View view){
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference myRef = database.getReference("name");
@@ -99,6 +99,8 @@ public class SignUp extends AppCompatActivity {
         User user = new User(Name.getText().toString(), Password.getText().toString(), Email.getText().toString(), Phone.getText().toString(), tasks);
         myRef.setValue(user);
     }
+
+ */
 
     private void createUser () {
         String name = Name.getText().toString();
@@ -150,10 +152,22 @@ public class SignUp extends AppCompatActivity {
                             .setDisplayName(Name.getText().toString()).build();
 
                     FirebaseDatabase database = FirebaseDatabase.getInstance();
-                    DatabaseReference myRef = database.getReference("users").child(user.getUid()).child("profile").push();
+                    DatabaseReference myRef = database.getReference("users").child(user.getUid()).child("profile");
 
                     User mUser = new User(Name.getText().toString(), Password.getText().toString(), Email.getText().toString(), Phone.getText().toString(), tasks);
                     myRef.setValue(mUser);
+                    myRef.child("task counter").setValue("0");
+
+                    myRef.child("priority counter").child("priority 1").setValue("0");
+                    myRef.child("priority counter").child("priority 2").setValue("0");
+                    myRef.child("priority counter").child("priority 3").setValue("0");
+                    myRef.child("priority counter").child("priority 4").setValue("0");
+
+                    myRef.child("tags counter").child("home").setValue("0");
+                    myRef.child("tags counter").child("work").setValue("0");
+                    myRef.child("tags counter").child("health").setValue("0");
+                    myRef.child("tags counter").child("study").setValue("0");
+                    myRef.child("tags counter").child("shopping").setValue("0");
 
                     startActivity(new Intent(SignUp.this, Home.class));
                     finish();

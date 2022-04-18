@@ -3,6 +3,7 @@ package com.example.todolist;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.fragment.app.DialogFragment;
@@ -10,6 +11,8 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.Manifest;
+import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
@@ -23,12 +26,14 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.telephony.SmsManager;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.MenuItem;
@@ -48,9 +53,9 @@ import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
-import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -61,43 +66,97 @@ import java.text.DateFormat;
 import java.text.FieldPosition;
 import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.List;
 import java.util.Locale;
-import java.util.TimeZone;
 
 public class Home extends AppCompatActivity {
 
-    private static final String CHANNEL_ID = "10001";
+    FirebaseDatabase db;
+    DatabaseReference userRef,  tasksRef, myRef;
+    static String currentUser = FirebaseAuth.getInstance().getUid();
+    static String phoneNumber, UserName = "";
 
     BottomNavigationView bottomNavigationView;
     FloatingActionButton addNewTask;
-    TextView Title, TasksForToday;
+    static TextView Title, TasksForToday;
 
-    Calendar c;
-    static ArrayList<Task> tasks = new ArrayList<>();
+    Calendar c = Calendar.getInstance();
+
+    ArrayList<Task> tasks;
     static ArrayList<Task> delitedTasks = new ArrayList<>();
     ArrayList<Tag> tags = new ArrayList<>();
-    String currentDate;
-    String[] tagArray = {"home", "work", "health", "study", "shopping"};
+    static String currentDate;
+    static String[] tagArray = {"home", "work", "health", "study", "shopping"};
 
     RecyclerView recyclerViewTasks, recyclerViewTags;
     TaskAdapter taskAdapter;
     TagAdapter tagAdapter;
-    DatePickerDialog.OnDateSetListener dateSetListener;
-    TimePickerDialog.OnTimeSetListener timeSetListener;
+
     SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy");
+    SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm");
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
+        tasks = new ArrayList<>();
+        Title = findViewById(R.id.title);
+
+        db = FirebaseDatabase.getInstance();
+        userRef = db.getReference("users").child(currentUser).child("profile");
+        userRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                for(DataSnapshot ds : snapshot.getChildren())
+                {
+                    //Log.d("user",ds.getRef().toString());
+                    if(ds.getKey().equals("phone")){
+                        phoneNumber = ds.getValue().toString();
+                        Log.d("phoneNumber",phoneNumber);
+                    }
+                    if(ds.getKey().equals("name")){
+                    UserName = ds.getValue().toString();
+                    Title.setText("What's Up " + UserName + " !");
+                        Log.d("UserName",UserName);
+                    }
+                    if(ds.getKey().equals("task counter")){
+                        Dashboard.countD = Integer.parseInt(ds.getValue().toString());
+                    }
+                    if(ds.getKey().equals("priority counter")){
+                       Dashboard.countP1 = Integer.parseInt(ds.child("priority 1").getValue().toString());
+                       Dashboard.countP2 = Integer.parseInt(ds.child("priority 2").getValue().toString());
+                       Dashboard.countP3 = Integer.parseInt(ds.child("priority 3").getValue().toString());
+                       Dashboard.countP4 = Integer.parseInt(ds.child("priority 4").getValue().toString());
+                    }
+                    /*
+                    if(ds.getKey().equals("tags counter")){
+                        Dashboard.countHome = Integer.parseInt(ds.child("home").getValue().toString());
+                        Dashboard.countWork = Integer.parseInt(ds.child("work").getValue().toString());
+                        Dashboard.countHealth = Integer.parseInt(ds.child("health").getValue().toString());
+                        Dashboard.countStudy = Integer.parseInt(ds.child("study").getValue().toString());
+                        Dashboard.countShopping = Integer.parseInt(ds.child("shopping").getValue().toString());
+                    }
+                     */
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+
         startAlarm();
+
+        ActivityCompat.requestPermissions(Home.this, new String[]{Manifest.permission.SEND_SMS, Manifest.permission.READ_SMS}, PackageManager.PERMISSION_GRANTED);
 
         bottomNavigationView = findViewById(R.id.bottomNavigationView);
         bottomNavigationView.setBackground(null);
@@ -112,6 +171,11 @@ public class Home extends AppCompatActivity {
                         overridePendingTransition(0, 0);
                         return true;
 
+                    case R.id.miAllActivity:
+                        startActivity(new Intent(getApplicationContext(), Dashboard.class));
+                        overridePendingTransition(0, 0);
+                        return true;
+
                     case R.id.miHome:
                         return true;
                 }
@@ -119,10 +183,8 @@ public class Home extends AppCompatActivity {
             }
         });
 
-        c = Calendar.getInstance();
         currentDate = sdf.format(c.getTime());
 
-        Title = findViewById(R.id.title);
         TasksForToday = findViewById(R.id.task_for_today);
         addNewTask = findViewById(R.id.fab);
         addNewTask.setOnClickListener(new View.OnClickListener() {
@@ -132,13 +194,7 @@ public class Home extends AppCompatActivity {
             }
         });
 
-        /*
-        for (int i = 0; i <5; i++){
-            tasks.add(new Task("Task " + (i+1), "Description " + (i+1), "today", "flag"+(i / 3 + 1), "calender", "Tags: ", "tag", false));
-        }
-          */
-        TasksForToday.setText(String.format("you have %d tasks for today", tasks.size()));
-
+        //TasksForToday.setText(String.format("you have %d tasks for today", tasks.size()));
         recyclerViewTasks = findViewById(R.id.tasks_recycler);
         recyclerViewTasks.setLayoutManager(new LinearLayoutManager(this));
         taskAdapter = new TaskAdapter(tasks);
@@ -150,6 +206,7 @@ public class Home extends AppCompatActivity {
         tags.add(new Tag("health", "health"));
         tags.add(new Tag("study", "study"));
         tags.add(new Tag("shopping", "shopping"));
+
         recyclerViewTags = findViewById(R.id.tags_recycler);
         recyclerViewTags.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, true));
         tagAdapter = new TagAdapter(tags);
@@ -158,13 +215,41 @@ public class Home extends AppCompatActivity {
         taskAdapter.setOnItemClickListener(new TaskAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(Task task) {
-                if (task.isDone())
-                    tasks.remove(tasks.indexOf(task));
-                else
                     editExistTask(task, tasks.indexOf(task));
+            }
+        });
+
+        myRef = db.getReference("users").child(currentUser);
+        myRef.child("tasks").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                    //Log.d("task:" , dataSnapshot.getRef().toString());
+                    // if(dataSnapshot.child(id).getValue() != null ) {
+                    Task task = dataSnapshot.getValue(Task.class);
+                    if(task.getDate().equals(currentDate))
+                        tasks.add(task);
+                    //  }
+                    //Log.d("tasks:" , dataSnapshot.getValue(Task.class).toString());
+                }
+                taskAdapter.notifyDataSetChanged();
+                TasksForToday.setText(String.format("you have %d tasks for today", tasks.size()));
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
 
             }
         });
+
+        /*
+        for(Task task : allTasks) {
+            if (task.getDate().equals(currentDate)) {
+                tasks.add(task);
+
+            }
+        }
+         */
 
     }
 
@@ -197,10 +282,10 @@ public class Home extends AppCompatActivity {
         myNumberPicker.setMinValue(1);
         myNumberPicker.setValue(4);
 
-        final ArrayList<Integer>[] tagList = new ArrayList[]{new ArrayList<>()};
+        ArrayList<Integer> tagList = new ArrayList<>();
         boolean[] selectedTag = new boolean[tagArray.length];
 
-        Task newTask = new Task("", "", "", "", "flag4", "calender", tag.getText().toString(), "tag", false);
+        Task newTask = new Task(" ", "", "", "", "flag4", "calender", tag.getText().toString(), "tag", false);
 
         submit.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -208,15 +293,45 @@ public class Home extends AppCompatActivity {
                 //tasks.add(new Task(title.getText().toString(), description.getText().toString(), date.getText().toString(), "flag"+(int)myNumberPicker.getValue(), "calender", tag.getText().toString(), "tag", false));
                 newTask.setTitle(title.getText().toString());
                 newTask.setDescription(description.getText().toString());
+                //newTask.setPriority(priority.getText().toString());
                 newTask.setTags(tag.getText().toString());
 
-                //add to recycelView
-                if (date.getText().toString().equals(currentDate))
-                    tasks.add(newTask);
 
-                Calender.allTasks.add(newTask);
+                if(newTask.getPriority().equals("flag1")) {
+                    Dashboard.countP1++;
+                    DatabaseReference countRef = FirebaseDatabase.getInstance().getReference("users").child(currentUser).child("profile").child("priority counter").child("priority 1");
+                    countRef.setValue(Dashboard.countP1);
+                    sendSMS(view, "Hurry Up! your task " + title.getText().toString() + " is due today", phoneNumber);
+                }
+                if(newTask.getPriority().equals("flag2")){
+                    Dashboard.countP2++;
+                    DatabaseReference countRef = FirebaseDatabase.getInstance().getReference("users").child(currentUser).child("profile").child("priority counter").child("priority 2");
+                    countRef.setValue(Dashboard.countP2);
+                }
+                if(newTask.getPriority().equals("flag3"))
+                {
+                    Dashboard.countP3++;
+                    DatabaseReference countRef = FirebaseDatabase.getInstance().getReference("users").child(currentUser).child("profile").child("priority counter").child("priority 3");
+                    countRef.setValue(Dashboard.countP3);
+                }
+                if(newTask.getPriority().equals("flag4"))
+                {
+                    Dashboard.countP4++;
+                    DatabaseReference countRef = FirebaseDatabase.getInstance().getReference("users").child(currentUser).child("profile").child("priority counter").child("priority 4");
+                    countRef.setValue(Dashboard.countP4);
+                }
 
+                //Calender.allTasks.add(newTask);
+                tasksRef = db.getReference().child("users").child(currentUser).child("tasks");
+                String id = tasksRef.push().getKey();
+                tasksRef.child(id).setValue(newTask);
+
+                //if(newTask.getDate().equals(currentDate))
+                  //  for (int i = 0; i<tasks.size(); i++)
+                   //     tasks.remove(tasks.get(i));
+                tasks.clear();
                 taskAdapter.notifyDataSetChanged();
+
                 dialog.dismiss();
                 TasksForToday.setText(String.format("you have %d tasks for today", tasks.size()));
             }
@@ -232,17 +347,10 @@ public class Home extends AppCompatActivity {
                     TimePickerDialog.OnTimeSetListener onTimeSetListener = new TimePickerDialog.OnTimeSetListener() {
                         @Override
                         public void onTimeSet(TimePicker timePicker, int hourSelector, int minuteSelector) {
-
-                        }
-                    };
-
-                    timeSetListener = new TimePickerDialog.OnTimeSetListener() {
-                        @Override
-                        public void onTimeSet(TimePicker timePicker, int hourSelector, int minuteSelector) {
                             hour = hourSelector;
                             minute = minuteSelector;
-                            alarm.setText(String.format(Locale.getDefault(), "%02d:%02d"));
-                            newTask.setTime(alarm.getText().toString());
+                            alarm.setText(String.format(Locale.getDefault(), "%02d:%02d", hour,minute));
+                            //newTask.setTime(alarm.getText().toString());
                         }
                     };
 
@@ -282,15 +390,6 @@ public class Home extends AppCompatActivity {
                 datePickerDialog.show();
             }
         });
-        dateSetListener = new DatePickerDialog.OnDateSetListener() {
-            @Override
-            public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
-                month = month + 1;
-                String final_date = day + " / " + month + " / " + year;
-                date.setText(final_date);
-                newTask.setDate(date.getText().toString());
-            }
-        };
 
         priority.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -308,11 +407,14 @@ public class Home extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int which) {
                         newTask.setPriority("flag" + (int) myNumberPicker.getValue());
+                        priority.setText("flag" + (int) myNumberPicker.getValue());
                     }
                 });
                 builder.show();
             }
         });
+
+        //final ArrayList<Integer>[] tagList = new ArrayList[]{new ArrayList<>()};
 
         tag.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -323,32 +425,33 @@ public class Home extends AppCompatActivity {
 
                 builder.setMultiChoiceItems(tagArray, selectedTag, new DialogInterface.OnMultiChoiceClickListener() {
                     @Override
-                    public void onClick(DialogInterface dialogInterface, int i, boolean b) {
-                        if (b) {
+                    public void onClick(DialogInterface dialogInterface, int i, boolean isChecked) {
+                        if (isChecked) {
                             //when checkbox selected add position from the list
-                            tagList[0].add(i);
-                            Collections.sort(tagList[0]);
+                            tagList.add(i);
+                            Collections.sort(tagList);
                         } else
                             //when checkbox unselected remove position from the list
-                            tagList[0].remove(i);
+                            tagList.remove(i);
                     }
                 });
                 builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         StringBuilder stringBuilder = new StringBuilder();
-                        for (int j = 0; j < tagList[0].size(); j++) {
-                            //conact array value
-                            stringBuilder.append(tagArray[tagList[0].get(j)]);
-                            if (j != tagList[0].size() - 1)
+                        for (int j = 0; j < tagList.size(); j++) {
+                            //concat array value
+                            stringBuilder.append(tagArray[tagList.get(j)]);
+                            if (j != tagList.size() - 1)
                                 stringBuilder.append(", ");
                         }
                         tag.setText("Tags: " + stringBuilder.toString());
-                        newTask.setTagsList(stringBuilder);
+                        newTask.setTags(stringBuilder.toString());
+                        //newTask.setTagsList(stringBuilder);
                     }
                 });
 
-                builder.setNegativeButton("Cancle", new DialogInterface.OnClickListener() {
+                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         dialogInterface.dismiss();
@@ -403,13 +506,37 @@ public class Home extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 Task newTask = new Task(title.getText().toString(), description.getText().toString(), date.getText().toString(), alarm.getText().toString(), "flag" + myNumberPicker.getValue(), "calender", tag.getText().toString(), "tag", false);
-                tasks.set(position, newTask);
-                if (!date.getText().toString().equals(currentDate))
-                    tasks.remove(position);
+                //tasks.set(position, newTask);
+                //if (!date.getText().toString().equals(currentDate))
+                //    tasks.remove(position);
 
+                tasksRef = db.getReference().child("users").child(currentUser).child("tasks");
+                tasksRef.addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        for(DataSnapshot ds : snapshot.getChildren())
+                        {
+                            if(ds.child("title").getValue() == existTask.getTitle() ){
+                                if(ds.child("description").getValue() == existTask.getDescription() ){
+                                    String id = ds.getKey();
+                                    //DatabaseReference deleteRef = FirebaseDatabase.getInstance().getReference().child("users").child(currentUser).child("tasks").child(id).getRef();
+                                    //deleteRef.removeValue();
+                                    tasksRef.child(id).setValue(newTask);
+                                }
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
+                });
+                tasks.clear();
+                changePriority(existTask, newTask);
                 taskAdapter.notifyDataSetChanged();
                 dialog.dismiss();
-                TasksForToday.setText(String.format("you have %d tasks for today", tasks.size()));
+                //TasksForToday.setText(String.format("you have %d tasks for today", tasks.size()));
             }
         });
 
@@ -423,16 +550,9 @@ public class Home extends AppCompatActivity {
                     TimePickerDialog.OnTimeSetListener onTimeSetListener = new TimePickerDialog.OnTimeSetListener() {
                         @Override
                         public void onTimeSet(TimePicker timePicker, int hourSelector, int minuteSelector) {
-
-                        }
-                    };
-
-                    timeSetListener = new TimePickerDialog.OnTimeSetListener() {
-                        @Override
-                        public void onTimeSet(TimePicker timePicker, int hourSelector, int minuteSelector) {
                             hour = hourSelector;
                             minute = minuteSelector;
-                            alarm.setText(String.format(Locale.getDefault(), "%02d:%02d"));
+                            alarm.setText(String.format(Locale.getDefault(), "%02d:%02d", hour, minute));
                         }
                     };
 
@@ -457,7 +577,6 @@ public class Home extends AppCompatActivity {
                         Home.this,android.R.style.Theme_Holo_Light_Dialog_MinWidth,dateSetListener,year,month,day);
                 datePickerDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
                 datePickerDialog.show();
-
                  */
                 DatePickerDialog datePickerDialog = new DatePickerDialog(Home.this, new DatePickerDialog.OnDateSetListener() {
                     @Override
@@ -475,14 +594,7 @@ public class Home extends AppCompatActivity {
                 datePickerDialog.show();
             }
         });
-        dateSetListener = new DatePickerDialog.OnDateSetListener() {
-            @Override
-            public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
-                month = month + 1;
-                String final_date = day + " / " + month + " / " + year;
-                date.setText(final_date);
-            }
-        };
+
 
         priority.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -537,7 +649,8 @@ public class Home extends AppCompatActivity {
                                 stringBuilder.append(", ");
                         }
                         tag.setText("Tags: " + stringBuilder.toString());
-                        existTask.setTagsList(stringBuilder);
+                        existTask.setTags(stringBuilder.toString());
+                        //existTask.setTagsList(stringBuilder);
                     }
                 });
 
@@ -560,8 +673,31 @@ public class Home extends AppCompatActivity {
                 deleteDialog.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int which) {
-                        tasks.remove(position);
-                        delitedTasks.add(existTask);
+                        //tasks.remove(position);
+                        //delitedTasks.add(existTask);
+                        tasksRef = db.getReference().child("users").child(currentUser).child("tasks");
+                        tasksRef.addValueEventListener(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                for(DataSnapshot ds : snapshot.getChildren())
+                                {
+                                    if(ds.child("title").getValue() == existTask.getTitle() ){
+                                        if(ds.child("description").getValue() == existTask.getDescription() ){
+                                            String id = ds.getKey();
+                                            DatabaseReference deleteRef = FirebaseDatabase.getInstance().getReference().child("users").child(currentUser).child("tasks").child(id).getRef();
+                                            deleteRef.removeValue();
+                                        }
+                                    }
+                                }
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError error) {
+
+                            }
+                        });
+
+                        tasks.clear();
                         taskAdapter.notifyDataSetChanged();
                         dialog.dismiss();
                         TasksForToday.setText(String.format("you have %d tasks for today", tasks.size()));
@@ -598,21 +734,82 @@ public class Home extends AppCompatActivity {
     }
 
     private void startAlarm() {
-        createNotificationChannel();
+        //createNotificationChannel();
         Calendar calendar = Calendar.getInstance();
         calendar.setTimeInMillis(System.currentTimeMillis());
         calendar.set(Calendar.HOUR_OF_DAY, 8);
         calendar.set(Calendar.MINUTE, 0);
         calendar.set(Calendar.SECOND, 0);
         calendar.set(Calendar.MILLISECOND,0);
+        //calendar.add(Calendar.DATE,1);
 
-        AlarmManager alarmManager = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
-        Intent intent = new Intent(Home.this, AlertReceiver.class);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, intent, 0);
+        if(c.after(calendar))
+            calendar.add(Calendar.DATE,1);
+
+        AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+        Intent intent = new Intent(getApplicationContext(), AlertReceiver.class);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP,calendar.getTimeInMillis(),pendingIntent);
+        }
+    }
+
+    public void sendSMS (View view, String message, String phone){
+        SmsManager mySmsManager = SmsManager.getDefault();
+        mySmsManager.sendTextMessage(phone,null,message,null,null);
+        //Toast.makeText(Home.this, "Message Sent successfully!", Toast.LENGTH_LONG).show();
+    }
+
+    public static void changePriority(Task oldT, Task newT)
+    {
+        //update counter about the new task
+        if(newT.getPriority().equals("flag1")) {
+            Dashboard.countP1++;
+            DatabaseReference countRef = FirebaseDatabase.getInstance().getReference("users").child(currentUser).child("profile").child("priority counter").child("priority 1");
+            countRef.setValue(Dashboard.countP1);
+        }
+        if(newT.getPriority().equals("flag2")){
+            Dashboard.countP2++;
+            DatabaseReference countRef = FirebaseDatabase.getInstance().getReference("users").child(currentUser).child("profile").child("priority counter").child("priority 2");
+            countRef.setValue(Dashboard.countP2);
+        }
+        if(newT.getPriority().equals("flag3"))
+        {
+            Dashboard.countP3++;
+            DatabaseReference countRef = FirebaseDatabase.getInstance().getReference("users").child(currentUser).child("profile").child("priority counter").child("priority 3");
+            countRef.setValue(Dashboard.countP3);
+        }
+        if(newT.getPriority().equals("flag4"))
+        {
+            Dashboard.countP4++;
+            DatabaseReference countRef = FirebaseDatabase.getInstance().getReference("users").child(currentUser).child("profile").child("priority counter").child("priority 4");
+            countRef.setValue(Dashboard.countP4);
+        }
+
+        //update counter about the old task
+        if(oldT.getPriority().equals("flag1")) {
+            Dashboard.countP1--;
+            DatabaseReference countRef = FirebaseDatabase.getInstance().getReference("users").child(currentUser).child("profile").child("priority counter").child("priority 1");
+            countRef.setValue(Dashboard.countP1);
+        }
+        if(oldT.getPriority().equals("flag2")){
+            Dashboard.countP2--;
+            DatabaseReference countRef = FirebaseDatabase.getInstance().getReference("users").child(currentUser).child("profile").child("priority counter").child("priority 2");
+            countRef.setValue(Dashboard.countP2);
+        }
+        if(oldT.getPriority().equals("flag3"))
+        {
+            Dashboard.countP3--;
+            DatabaseReference countRef = FirebaseDatabase.getInstance().getReference("users").child(currentUser).child("profile").child("priority counter").child("priority 3");
+            countRef.setValue(Dashboard.countP3);
+        }
+        if(oldT.getPriority().equals("flag4"))
+        {
+            Dashboard.countP4--;
+            DatabaseReference countRef = FirebaseDatabase.getInstance().getReference("users").child(currentUser).child("profile").child("priority counter").child("priority 4");
+            countRef.setValue(Dashboard.countP4);
         }
     }
 }

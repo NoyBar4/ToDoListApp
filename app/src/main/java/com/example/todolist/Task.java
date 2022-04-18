@@ -1,12 +1,16 @@
 package com.example.todolist;
 
 import java.util.ArrayList;
+import java.util.Random;
 
 public class Task {
 
-    private String title, description, date, time, priority, calenderIcon, tags, tagIcon;
-    private StringBuilder tagsList;
+    private String title, description, date, time, priority, calenderIcon, tags, tagIcon, tagsList;
+    //private StringBuilder tagsList;
     private boolean done;
+
+    public Task() {
+    }
 
     public Task(String title, String description, String date, String time, String priority, String calenderIcon, String tags, String tagIcon, boolean done) {
         this.title = title;
@@ -21,7 +25,6 @@ public class Task {
 
         StringBuilder tagsList = new StringBuilder();
     }
-
 
     public String getTitle() {
         return title;
@@ -85,7 +88,7 @@ public class Task {
     public void setTags(String tags) {
         this.tags = tags;
     }
-
+/*
     public StringBuilder getTagsList() {
         return tagsList;
     }
@@ -93,4 +96,7 @@ public class Task {
     public void setTagsList(StringBuilder tagsList) {
         this.tagsList = tagsList;
     }
+
+ */
+
 }
